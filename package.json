@@ -1,0 +1,22 @@
+{
+  "name": "playerioclient",
+  "version": "0.1.0",
+  "description": "A wrapper that sends requests and connects to PlayerIO via HTTP and WS respectively.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node ./test/index.js"
+  },
+  "keywords": [
+    "PlayerIO",
+    "JavaScript"
+  ],
+  "author": "Doomester",
+  "license": "MIT",
+  "dependencies": {
+    "undici": "^5.23.0",
+    "ws": "^8.13.0"
+  },
+  "devDependencies": {
+    "dotenv": "^16.3.1"
+  }
+}
