@@ -3,7 +3,7 @@ require("dotenv").config();
 let email = process.env.EMAIL;
 let password = process.env.PASSWORD;
 
-let PlayerIO = require("../index");
+let PlayerIO = require("../index.js");
 
 PlayerIO.QuickConnect.simpleConnect(process.env.GAMEID, email, password)
     .then(v  => {

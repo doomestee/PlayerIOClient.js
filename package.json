@@ -1,7 +1,9 @@
 {
   "name": "playerioclient",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A wrapper that sends requests and connects to PlayerIO via HTTP and WS respectively.",
+  "homepage": "https://github.com/doomestee/PlayerIOClient.js",
+  "repository": "doomestee/PlayerIOClient.js",
   "main": "index.js",
   "scripts": {
     "test": "node ./test/index.js"
