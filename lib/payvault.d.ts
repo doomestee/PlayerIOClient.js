@@ -106,56 +106,62 @@ export = class PayVault {
  * This class represents an item in a user's Vault
  */
 export class VaultItem {
-    constructor(id, itemKey, purchaseDate) {
-		/** The unique id of this particular vault item in the user's vault
-		* @type string
-		*/
-		this.id = id;
+    constructor(id: string, itemKey: string, purchaseDate: Date);
 
-		/** The key of the underlying item in the PayVaultItems BigDB table
-		* @type string
-		*/
-		this.itemKey = itemKey;
+    /**
+     * The unique id of this particular vault item in the user's vault.
+     */
+    id: string;
+    
+    /**
+     * The key of the underlying item in the PayVaultItems BigDB table.
+     */
+    itemKey: string;
 
-		/** The time when the vault item was originally purchased
-		* @type Date
-		*/
-		this.purchaseDate = purchaseDate;
-    }
+    /**
+     * The time when the vault item was originally purchased.
+     */
+    purchaseDate: string;
 }
 
 /**
 * This class represents an entry in a user's PayVault history.
 */
 export class PayVaultHistoryEntry {
-    constructor(type, amount, timestamp, itemkeys, reason, providerTransactionId, providerPrice) {
-        /** The type of this entry, for example 'buy','credit','debit'... 
-        * @type string
-        */
-        this.type = type;
-        /** The coin amount of this entry. 
-        * @type number
-        */
-        this.amount = amount;
-        /** When this entry was created. 
-        * @type Date
-        */
-        this.timestamp = new Date().setTime(timestamp);
-        /** The item keys related to this entry (entries with type 'buy'). 
-        * @type string[]
-        */
-        this.itemKeys = itemkeys;
-        /** The developer supplied reason for entries of type 'credit' and 'debit'. 
-        * @type string
-        */
-        this.reason = reason;
-        /** The transaction id from the PayVault provider corresponding to this entry. 
-        * @type string
-        */
-        this.providerTransactionId = providerTransactionId;
-        /** The price in real currency of this entry formatted as a human readable currency string, e.g. $10.00 USD 
-        * @type string
-        */
-        this.providerPrice = providerPrice;
-    }
+    constructor(type: string, amount: number, timestamp: number, itemkeys: string[], reason: string, providerTransactionId: string, providerPrice: string);
+
+    /**
+     * The type of this entry, for example 'buy','credit','debit'...
+     */
+    type: string;
+
+    /**
+     * The coin amount of this entry.
+     */
+    amount: number;
+
+    /**
+     * When this entry was created.
+     */
+    timestamp: Date;
+
+    /**
+     * The item keys related to this entry (entries with type 'buy').
+     */
+    itemkeys: string[];
+
+    /**
+     * The developer supplied reason for entries of type 'credit' and 'debit'.
+     */
+    reason: string;
+
+    /**
+     * The transaction id from the PayVault provider corresponding to this entry.
+     */
+    providerTransactionId: string;
+
+    /**
+     * The price in real currency of this entry formatted as a human readable currency string, e.g. $10.00 USD
+     */
+    providerPrice: string;
 }

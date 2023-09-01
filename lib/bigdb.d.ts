@@ -23,7 +23,7 @@ class BigDB {
     /**
      * Loads the database object corresponding to the player from the PlayerObjects table.
      */
-    createObject(): Promise<DatabaseObject>;
+    loadMyPlayerObject(): Promise<DatabaseObject>;
 
     /**
      * Load the database object with the given key from the given table.
