@@ -1,12 +1,12 @@
 import { EntryType } from "./utilities";
 
-export = class Message {
-    constructor(type: string);
+export = class Message<T=string> {
+    constructor(type: T);
 
     /**
      * Type of the message.
      */
-    type: string;
+    type: T;
 
     protected types: [];
     
