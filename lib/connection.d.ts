@@ -59,7 +59,7 @@ export = class Connection {
      * Send a message with arguments inline: connection.createMessage('invite', arg1, arg2...)
      * @param {string} type The string type to give to the message.
      */
-    send(type: string, ...args): Message;
+    send(type: string, ...args): void;
 
     /**
      * @param type Use "*" for all message types.
