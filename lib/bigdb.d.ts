@@ -115,8 +115,8 @@ export function bigDBDeserialize(properties, target, isObject): void;
 * as a method for persisting any changes back to BigDB.
 */
 
-export class DatabaseObject {
-    constructor(owner: BigDB, table: string, key: string, version: string, createIfMissing: boolean, properties: Object);
+export class DatabaseObject<obj=object> {
+    constructor(owner: BigDB, table: string, key: string, version: string, createIfMissing: boolean, properties: obj);
 
     /**
      * This is an object, containing all of the values (mapped by their key).
@@ -130,7 +130,7 @@ export class DatabaseObject {
      * Or: \<DatabaseObject\>.isStaff == true
      * 
      */
-    dbCurrent: Object;
+    dbCurrent: obj;
     isSaving: boolean;
 
     /**
@@ -167,7 +167,7 @@ export class DatabaseObject {
     save(useOptimisticLocks: boolean, fullOverwrite: boolean): unknown;
 
     _internal_(method, arg1: "get-table"|"get-key"|"get-version"): string;
-    _internal_(method, arg1: "get-dbCurrent"): Object;
+    _internal_(method, arg1: "get-dbCurrent"): obj;
     _internal_(method, arg1: "get-is-saving"): boolean;
     _internal_(method, arg1: "set-is-saving"|"set-version"|"change-dbCurrent"): void;
 }
