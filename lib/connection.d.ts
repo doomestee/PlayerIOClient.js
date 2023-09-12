@@ -1,8 +1,8 @@
-import { WebSocket } from "ws";
+import { WebSocket, CloseEvent } from "ws";
 import Message from "./message";
 
 export = class Connection {
-    constructor(developmentServer: unknown, endpoints: { address: string, port: number }[], joinKey: string, joinData: Object, connectTimeout=10000);
+    constructor(developmentServer: unknown, endpoints: { address: string, port: number }[], joinKey: string, joinData: Object);
 
     /**
      * An object mapped by message types leading to an array of callbacks that takes in the message for first parameter. If undefined, no callbacks for it exists.
@@ -13,12 +13,7 @@ export = class Connection {
         [type: string]: (function(Message): void)[]
     };
 
-    /**
-     * TODO: make use of this...
-     * 
-     * Otherwise, use .socket.once disconnect/close thing
-     */
-    protected disconnectCallback: [];
+    disconnectCallback: (function(CloseEvent): void)[];
 
     socket: WebSocket;
 
@@ -73,4 +68,12 @@ export = class Connection {
      * @param callback The callback to be called when a message of the given type is received.
      */
     addMessageCallback(type: string, callback: function(Message): void): void;
+
+    /**
+     * Add a callback that triggers when the connection closes.
+     * 
+     * The CloseEvent will always have the code property, reason is provided but may be empty string.
+     * @param callback The callback to be called when the connection disconnects, for any reason.
+     */
+    addDisconnectCallback(callback: function(CloseEvent): void): void;
 }
