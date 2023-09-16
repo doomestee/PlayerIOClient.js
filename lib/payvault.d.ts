@@ -40,7 +40,7 @@ export = class PayVault {
     /**
      * Refreshes this Vault, making sure the Items and Coins are up-to-date.
      */
-    count(): Promise<boolean>;
+    refresh(): Promise<boolean>;
 
     /**
     * Loads a page of entries from this Vaults history, in reverse chronological order, i.e. newest first.
@@ -69,7 +69,7 @@ export = class PayVault {
     * You don't need to call refresh after this call
     * @param items VaultItems to use from the users vault - this should be instances of items in this Vault.
     */
-    debit(items: VaultItem[]): Promise<boolean>;
+    consume(items: VaultItem[]): Promise<boolean>;
 
     /**
     * Buy items with Coins.
@@ -82,7 +82,7 @@ export = class PayVault {
     * Give the user items without taking any of his coins from the vault.
     * @param items A list of items to give. Each item must have a property called 'itemkey' with the item key. Any additional properties will be converted to item payload.
     */
-    buy(items: Object[], storeItems: boolean): Promise<boolean>;
+    give(items: Object[], storeItems: boolean): Promise<boolean>;
 
     /**
     * Gets information about how to make a coin purchase with the specified PayVault provider.
