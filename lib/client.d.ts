@@ -1,3 +1,4 @@
+import Achievements from "./achievements";
 import BigDB from "./bigdb";
 import HTTPChannel from "./channel";
 import GameFS from "./gamefs";
@@ -47,9 +48,14 @@ export = class PlayerIOClient {
     bigDB: BigDB;
 
     /**
-     * An instance of BigDB.
+     * An instance of Multiplayer.
      */
     multiplayer: Multiplayer;
+
+    /**
+     * An instance of Achievements.
+     */
+    achievements: Achievements;
 
     /**
      * Authenticates a user to Player.IO. See the Authentication documentation on which authenticationArguments that are needed for each authentication provider.
