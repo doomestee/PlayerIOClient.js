@@ -1,6 +1,6 @@
 {
   "name": "playerioclient",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "A wrapper that sends requests and connects to PlayerIO via HTTP and WS respectively.",
   "homepage": "https://github.com/doomestee/PlayerIOClient.js",
   "repository": "doomestee/PlayerIOClient.js",
@@ -21,7 +21,7 @@
   "author": "Doomester",
   "license": "MIT",
   "dependencies": {
-    "bytearray-node": "github:RealDoomester/bytearray-node",
+    "bytearray-node": "^3.3.5",
     "undici": "^5.23.0",
     "ws": "^8.13.0"
   },
