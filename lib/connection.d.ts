@@ -1,8 +1,9 @@
 import { WebSocket, CloseEvent } from "ws";
 import Message from "./message";
+import { HttpsProxyAgentOptions } from "https-proxy-agent";
 
 export = class Connection {
-    constructor(developmentServer: unknown, endpoints: { address: string, port: number }[], joinKey: string, joinData: Object);
+    constructor(developmentServer: unknown, endpoints: { address: string, port: number }[], joinKey: string, joinData: Object, proxyUse?: HttpsProxyAgentOptions);
 
     /**
      * An object mapped by message types leading to an array of callbacks that takes in the message for first parameter. If undefined, no callbacks for it exists.
@@ -26,6 +27,8 @@ export = class Connection {
     protected joinData: string;
 
     protected developmentServer: string;
+
+    protected proxyObj: (HttpsProxyAgentOptions<string> & { uri: string })?;
 
     connected: boolean;
 

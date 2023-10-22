@@ -22,6 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "bytearray-node": "^3.3.5",
+    "https-proxy-agent": "^7.0.2",
     "undici": "^5.23.0",
     "ws": "^8.13.0"
   },

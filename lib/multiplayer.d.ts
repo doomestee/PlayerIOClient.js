@@ -4,6 +4,7 @@
 const RoomInfo = require("./room.js");
 const Connection = require("./connection.js");*/
 
+import { HttpsProxyAgentOptions } from "https-proxy-agent";
 import HTTPChannel from "./channel";
 import Connection from "./connection";
 import RoomInfo from "./room";
@@ -31,8 +32,9 @@ export = class Multiplayer {
      * Join a running multiplayer room.
      * @param roomId The id of the room you wish to connect to.
      * @param joinData Data to send to the room with additional information about the join.
+     * @param proxyObj OPTIONAL: If you wish to proxy your multiplayer connection, it must be a uri, an example: 'http://168.63.76.32:3128'.
      */
-    joinRoom(roomId: string, joinData?: Object): Promise<Connection>;
+    joinRoom(roomId: string, joinData?: Object, proxyObj?: (HttpsProxyAgentOptions<string> & { uri: string })): Promise<Connection>;
 
     /**
      * Creates a multiplayer room (if it does not exist already) and joins it.
@@ -41,8 +43,9 @@ export = class Multiplayer {
      * @param visible If the room doesn't exist: Should the room be visible when listing rooms with GetRooms upon creation?
      * @param roomData If the room doesn't exist: The data to initialize the room with upon creation.
      * @param joinData Data to send to the room with additional information about the join.
+     * @param proxyObj OPTIONAL: If you wish to proxy your multiplayer connection.
      */
-    createJoinRoom(roomId: string, roomType: string, visible: boolean, roomData?: Object, joinData?: Object): Promise<Connection>;
+    createJoinRoom(roomId: string, roomType: string, visible: boolean, roomData?: Object, joinData?: Object, proxyObj?: (HttpsProxyAgentOptions<string> & { uri: string })): Promise<Connection>;
 
     /**
      * List the currently running multiplayer rooms.
