@@ -1,4 +1,5 @@
 import { KVArray, LockType } from "./utilities";
+import { ProxyAgent } from "undici";
 
 export interface CallResult {
     token: string;
@@ -11,6 +12,11 @@ export = class HTTPChannel {
      * Authorization token, taken from successful authentication.
      */
     token: string;
+
+    /**
+     * Proxy Agent (an instance of "https-proxy-agent").
+     */
+    proxyAgent?: ProxyAgent;
 
     async call(method: number, args: Object);
 
