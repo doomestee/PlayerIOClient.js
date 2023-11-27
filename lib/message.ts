@@ -1,5 +1,7 @@
-const ByteArray = require("bytearray-node");
-const { EntryType } = require("./utilities.js");
+/** @module Message */
+
+import { EntryType } from "./constants";
+import ByteArray from "./structures/ByteArray";
 
 /**
 * Represents a message sent between client and server.
@@ -35,22 +37,21 @@ const { EntryType } = require("./utilities.js");
 * //Send the message to the server:
 * connection.sendMessage(m);
 * </listing>
-*/
-module.exports = class Message {
-    constructor(type) {
-        /**
-         * Type of the message
-         * @type {string}
-         */
+ */
+export default class Message<T=string> {
+    /**
+     * Type of the message.
+     */
+    type: T;
+
+    protected types: EntryType[];
+    protected objects: (string|number|boolean|ByteArray)[];
+
+    constructor(type: T) {
         this.type = type;
 
-        /**
-         * @protected
-         */
         this.types = [];
-        /**
-         * @protected
-         */
+
         this.objects = [];
     }
 
@@ -65,7 +66,7 @@ module.exports = class Message {
      * Adds data entries to the Message object 
      * @param {any[]} args Entries to add. Valid types are Number, String, Boolean and ByteArray. If a Number is passed, and it is an integer, it will be added to the first type it fits in this order: Int, UInt, Long, ULong. If it doesn't fit in any integer type, or if it's not an integer, it will be added as a Double.
      */
-    add(...args) {
+    add(...args: any) {
         for (let i = 0; i < args.length; i++) {
             let value = args[i];
 
@@ -86,6 +87,7 @@ module.exports = class Message {
                             this.addULong(value); break;
                         }
                     }; this.addDouble(value); break;
+                // @ts-ignore
                 case "object":
                     if (this.isByteArray(value)) { this.addByteArray(value); break; }
                 default: throw Error("The type of the value (" + value + ") cannot be inferred");
@@ -97,21 +99,21 @@ module.exports = class Message {
      * Add a value encoded as an int to the message
      * @param {number} value The number to add
      */
-    addInt(value) {
+    addInt(value: number) {
         this.addT(value >= -2147483648 && value <= 2147483647, Math.trunc(value), EntryType.Integer, "an integer (32bit)");
     }
 
     /** Add a value encoded as a uint to the message
     * @param {number} value The number to add
     */
-    addUInt(value) {
+    addUInt(value: number) {
         this.addT(value >= 0 && value <= 4294967295, Math.trunc(value), EntryType.UnsignedInteger, "an unsigned integer (32bit)");
     }
 
     /** Add a value encoded as a long to the message
     * @param {number} value The number to add
     */
-    addLong(value) {
+    addLong(value: number) {
         //Boundary is rounded because max_long and min_long can't be accurately represented as double
         this.addT(value >= -9223372036854775000 && value <= 9223372036854775000, Math.trunc(value), EntryType.Long, "a long (64bit)");
     }
@@ -119,7 +121,7 @@ module.exports = class Message {
     /** Add a value encoded as a ulong to the message
     * @param {number} value The number to add
     */
-    addULong(value) {
+    addULong(value: number) {
         //Boundary is rounded because max_ulong can't be accurately represented as double
         this.addT(value >= 0 && value <= 18446744073709550000, value, EntryType.UnsignedLong, "an unsigned long (64bit)");
     }
@@ -127,77 +129,77 @@ module.exports = class Message {
     /** Add a boolean value to the message
     * @param {boolean} value The bool to add
     */
-    addBoolean(value) {
+    addBoolean(value: boolean) {
         this.addT(true, value ? true : false, EntryType.Boolean, "a boolean value");
     }
 
     /** Add a value encoded as a float to the message
     * @param {number} value The number to add
     */
-    addFloat(value) {
+    addFloat(value: number) {
         this.addT(true, Number(value), EntryType.Float, "a floating point value (32bit)");
     }
 
     /** Add a value encoded as a double to the message
     * @param {number} value The number to add
     */
-    addDouble(value) {
+    addDouble(value: number) {
         this.addT(true, Number(value), EntryType.Double, "a double floating point value (64bit)");
     }
 
     /** Add a byte array value to the message
     * @param {number[]} value The byte array to add
     */
-    addByteArray(value) {
+    addByteArray(value: number[]|Uint8Array|Buffer|ByteArray) {
         this.addT(this.isByteArray(value), value, EntryType.ByteArray, "a bytearray");
     }
 
     /** Add a string value to the message
     * @param {string} value The string to add
     */
-    addString(value) {
+    addString(value: string) {
         this.addT(true, value + '', EntryType.String, "a string");
     }
 
     /** Get the int from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {number} */
-    getInt(index) {
-        return this.get(index, EntryType.Integer)
+    getInt(index: number) : number {
+        return this.get(index, EntryType.Integer);
     }
 
     /** Get the uint from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {number} */
-    getUInt(index) {
+    getUInt(index: number) : number {
         return this.get(index, EntryType.UnsignedInteger)
     }
 
     /** Get the long from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {number} */
-    getLong(index) {
+    getLong(index: number) : number {
         return this.get(index, EntryType.Long)
     }
 
     /** Get the ulong from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {number} */
-    getULong(index) {
+    getULong(index: number) : number {
         return this.get(index, EntryType.UnsignedLong)
     }
 
     /** Get the bool from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {boolean} */
-    getBoolean(index) {
+    getBoolean(index: number) : Boolean {
         return this.get(index, EntryType.Boolean)
     }
 
     /** Get the double from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {number} */
-    getDouble(index) {
+    getDouble(index: number) : number {
         return this.get(index, EntryType.Double)
     }
 
@@ -206,28 +208,28 @@ module.exports = class Message {
      * @param {number} index The zero-based index of the entry to get
      * @returns 
      */
-    getNumber(index) {
+    getNumber(index: number) : number {
         return this.get(index, 69)
     }
 
     /** Get the float from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {number} */
-    getFloat(index) {
+    getFloat(index: number) : number {
         return this.get(index, EntryType.Float)
     }
 
     /** Get the int from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {number} */
-    getByteArray(index) {
+    getByteArray(index: number) : ByteArray {
         return this.get(index, EntryType.ByteArray)
     }
 
     /** Get the string from the message at the given index
     * @param {number} index The zero-based index of the entry to get
     * @return {string} */
-    getString(index) {
+    getString(index: number) : String {
         return this.get(index, EntryType.String)
     }
 
@@ -241,23 +243,29 @@ module.exports = class Message {
         return str;
     }
 
-    _internal_(method, arg) {
+    _internal_(method: "get-types") : EntryType[];
+    _internal_(method: "get-objects") : (string|number|boolean|ByteArray)[];
+    _internal_(method: "get-objects"|"get-types") {
         switch (method) {
             case 'get-objects': return this.objects;
             case 'get-types': return this.types;
         }
     }
 
-    addT(check, value, type, errorMessage) {
+    addT(check: boolean, value: any, type: EntryType, errorMessage: string) {
         if (check) {
-            if (type === EntryType.ByteArray) value = new ByteArray(value);
+            if (type === EntryType.ByteArray && Array.isArray(value)) value = new ByteArray(value);
 
             this.objects.push(value);
             this.types.push(type);
         } else throw Error("The given value (" + value + ") is not " + errorMessage);
     }
 
-    get(index, type) {
+    get(index: number, type: EntryType.Boolean) : boolean;
+    get(index: number, type: EntryType.ByteArray) : ByteArray;
+    get(index: number, type: EntryType.Double|EntryType.Float|EntryType.Integer|EntryType.Long|EntryType.Number|EntryType.UnsignedInteger|EntryType.UnsignedLong) : number;
+    get(index: number, type: EntryType.String) : string;
+    get(index: number, type: EntryType) {
         if (index > this.length) {
             throw Error("this message (" + this.type + ") only has " + this.objects.length + " entries");
         } else {
@@ -269,7 +277,7 @@ module.exports = class Message {
         }
     }
 
-    getTypeString(type=0) {
+    getTypeString(type:EntryType=EntryType.Integer) {
         let t = {
             [EntryType.Integer]: "Integer",
             [EntryType.UnsignedInteger]: "Unsigned Integer",
@@ -290,7 +298,7 @@ module.exports = class Message {
      * @param {Buffer} value
      * @returns 
      */
-    isByteArray(value) {
+    isByteArray(value: Uint8Array|Buffer|number[]|ByteArray) {
         if (value instanceof ByteArray) return true;
 
         let isBytes = typeof (value) == 'object' && typeof (value.length) != 'undefined'

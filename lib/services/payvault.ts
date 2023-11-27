@@ -1,28 +1,37 @@
-const { bigDBDeserialize } = require("./bigdb.js");
-const PlayerIOError = require("./playerioerror.js");
-const { compareForChanges, convertFromKVArray, convertToKVArray } = require("./utilities.js");
-const PlayerIOErrorCode = PlayerIOError.PlayerIOErrorCode;
+/** @module PayVault */
+import type HTTPChannel from "../channel";
+import { bigDBDeserialize } from "./bigdb";
+import { compareForChanges, convertToKVArray, convertFromKVArray, KeyValue } from "../utilities/util";
+import PlayerIOError from "../error";
+const { PlayerIOErrorCode } = PlayerIOError;
 
-/**
- * The PayVault service.
- */
-module.exports = class PayVault {
-    /**
-     * @param {import("./channel")} channel 
-     */
-    constructor(channel) {
+export default class PayVault {
+    private channel: HTTPChannel;
+    private currentVersion: string | null;
+
+    private _coins?: number;
+
+    private _items?: [];
+
+    constructor(channel: HTTPChannel) {
         this.channel = channel;
         this.currentVersion = null;
+    }
 
-        /** The number of coins in this user's Vault. You must call refresh() first to initialize this value.
-        * @type {number}
-        */
-        this.coins = "[ERROR: you tried to access payVault.coins before the vault was loaded. You have to refresh the vault before the .coins property is set to the right value]";
+    /**
+     * The number of coins in this user's Vault. You must call refresh() first to initialize this value.
+     */
+    get coins() : number {
+        if (this._coins === undefined) throw Error("[ERROR: you tried to access payVault.coins before the vault was loaded. You have to refresh the vault before the .coins property is set to the right value]");
+        return this._coins;
+    }
 
-        /** The list of items in this user's Vault. You must call refresh() first to initialize this value.
-        * @type {number}
-        */
-        this.items = "[ERROR: you tried to access payVault.items before the vault was loaded. You have to refresh the vault before the .items property is set to the right value]";
+    /**
+     * The number of coins in this user's Vault. You must call refresh() first to initialize this value.
+     */
+    get items() : any[] {
+        if (this._items === undefined) throw Error("[ERROR: you tried to access payVault.items before the vault was loaded. You have to refresh the vault before the .items property is set to the right value]");
+        return this._items;
     }
 
     /**
@@ -30,8 +39,8 @@ module.exports = class PayVault {
     * @param {string} itemKey The itemKey to check for.
     * @return {boolean} True if the user has at least one item of the given type (itemKey).
     */
-    has(itemKey) {
-        if (currentVersion == null) { throw new PlayerIOError(PlayerIOErrorCode.VaultNotLoaded, "Cannot access items before vault has been loaded. Please refresh the vault first"); }
+    has(itemKey: string) {
+        if (this.currentVersion == null) { throw new PlayerIOError(PlayerIOErrorCode.VaultNotLoaded, "Cannot access items before vault has been loaded. Please refresh the vault first"); }
         for (let i = 0; i != this.items.length; i++) {
             if (this.items[i].itemKey == itemKey) {
                 return true;
@@ -45,8 +54,8 @@ module.exports = class PayVault {
     * @param {string} itemKey The itemKey of the item to get.
     * @return {number} A VaultItem if one was found, or null if not.
     */
-    first(itemKey) {
-        if (currentVersion == null) { throw new PlayerIOError(PlayerIOErrorCode.VaultNotLoaded, "Cannot access items before vault has been loaded. Please refresh the vault first"); }
+    first(itemKey: string) {
+        if (this.currentVersion == null) { throw new PlayerIOError(PlayerIOErrorCode.VaultNotLoaded, "Cannot access items before vault has been loaded. Please refresh the vault first"); }
         for (let i = 0; i != this.items.length; i++) {
             if (this.items[i].itemKey == itemKey) {
                 return this.items[i];
@@ -54,13 +63,14 @@ module.exports = class PayVault {
         }
         return null;
     }
+
     /**
     * Returns the number of items of a given itemKey is in this Vault. This method can only be called on an up-to-date vault.
     * @param string itemKey The itemKey of the items to count.
     * @return {number} The number of items of the given type that the user has in the vault.
     */
-    count(itemKey) {
-        if (currentVersion == null) { throw new PlayerIOError(PlayerIOErrorCode.VaultNotLoaded, "Cannot access items before vault has been loaded. Please refresh the vault first"); }
+    count(itemKey: string) {
+        if (this.currentVersion == null) { throw new PlayerIOError(PlayerIOErrorCode.VaultNotLoaded, "Cannot access items before vault has been loaded. Please refresh the vault first"); }
         let result = 0;
         for (let i = 0; i != this.items.length; i++) {
             if (this.items[i].itemKey == itemKey) {
@@ -77,7 +87,6 @@ module.exports = class PayVault {
     refresh() {
         return this.channel.payVaultRefresh(this.currentVersion, null)
             .then(result => {
-                if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
                 return this.readContent(result.vaultcontents);
             });
     }
@@ -87,11 +96,10 @@ module.exports = class PayVault {
     * @param {number} page The page of entries to load. The first page has number 0.
     * @param {number} pageSize The number of entries per page.
     */
-    readHistory(page, pageSize) {
+    readHistory(page: number, pageSize: number) {
         return this.channel.payVaultReadHistory(page, pageSize, null)
             .then(result => {
-                if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
-                let arr = [];
+                let arr:PayVaultHistoryEntry[] = [];
 
                 for (let i = 0; i < result.entries.length; i++) {
                     let item = result.entries[i];
@@ -108,10 +116,9 @@ module.exports = class PayVault {
     * @param {number} coinAmount The amount of coins to give.
     * @param {string} reason Your reason for giving the coins to this user. This will show up in the vault history, and in the PayVault admin panel for this user.
     */
-    credit(coinAmount, reason) {
+    credit(coinAmount: number, reason: string) {
         return this.channel.payVaultCredit(coinAmount, reason, null)
             .then(result => {
-                if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
                 return this.readContent(result.vaultcontents);
             });
     }
@@ -121,10 +128,9 @@ module.exports = class PayVault {
     * @param {number} coinAmount The amount of coins to take.
     * @param {string} reason Your reason for taking the coins from this user. This will show up in the vault history, and in the PayVault admin panel for this user.
     */
-    debit(coinAmount, reason) {
+    debit(coinAmount: number, reason: string) {
         return this.channel.payVaultDebit(coinAmount, reason, null)
             .then(result => {
-                if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
                 return this.readContent(result.vaultcontents);
             });
     }
@@ -135,12 +141,12 @@ module.exports = class PayVault {
     * You don't need to call refresh after this call.
     * @param {VaultItem[]} items The VaultItems to use from the users vault - this should be instances of items in this Vault.
     */
-    consume(items) {
-        if (typeof (items) != 'object' && !items.length) {
+    consume(items: VaultItem[]) {
+        if (typeof (items) != 'object' || !items.length) {
             return Promise.reject("The first argument to consume should be an array: client.payVault.consume([item], ...)");
         }
 
-        let ids = [];
+        let ids:string[] = [];
 
         for (let i = 0; i < items.length; i++) {
             let id = items[i].id;
@@ -150,7 +156,6 @@ module.exports = class PayVault {
 
         return this.channel.payVaultConsume(ids, null)
             .then(result => {
-                if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
                 return this.readContent(result.vaultcontents);
             });
     }
@@ -161,10 +166,9 @@ module.exports = class PayVault {
     * @param {object[]} items A list of items to buy. Each item must have a property called 'itemkey' with the item key. Any additional properties will be converted to item payload.
     * @param {boolean} storeItems Whether or not to store the items in the vault after purchase
     */
-    buy(items, storeItems) {
+    buy(items: ItemPayload[], storeItems: boolean) {
         return this.channel.payVaultBuy(convertBuyItems(items), storeItems, null)
             .then(result => {
-                if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
                 return this.readContent(result.vaultcontents);
             });
     }
@@ -173,10 +177,9 @@ module.exports = class PayVault {
     * Give the user items without taking any of his coins from the vault.
     * @param {object[]} items A list of items to give. Each item must have a property called 'itemkey' with the item key. Any additional properties will be converted to item payload.
     */
-    give(items) {
+    give(items: ItemPayload[]) {
         return this.channel.payVaultGive(convertBuyItems(items), null)
             .then(result => {
-                if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
                 return this.readContent(result.vaultcontents);
             });
     }
@@ -186,10 +189,9 @@ module.exports = class PayVault {
     * @param {string} provider The name of the PayVault provider to use for the coin purchase.
     * @param {object} purchaseArguments Any additional information that will be given to the PayVault provider to configure this purchase.
     */
-    getBuyCoinsInfo(provider, purchaseArguments) {
+    getBuyCoinsInfo(provider: string, purchaseArguments?: KeyValue) {
         return this.channel.payVaultPaymentInfo(provider, convertToKVArray(purchaseArguments), null)
             .then(result => {
-                if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
                 return convertFromKVArray(result.providerarguments);
             });
     }
@@ -200,25 +202,24 @@ module.exports = class PayVault {
     * @param {object} purchaseArguments Any additional information that will be given to the PayVault provider to configure this purchase.
     * @param {object[]} items A list of items to buy. Each item must have a property called 'itemkey' with the item key. Any additional properties will be converted to item payload.
     */
-    getBuyDirectInfo(provider, purchaseArguments, items) {
+    getBuyDirectInfo(provider: string, purchaseArguments: KeyValue, items: ItemPayload[]) {
         return this.channel.payVaultPaymentInfo(provider, convertToKVArray(purchaseArguments), convertBuyItems(items))
-        .then(result => {
-            if (result.errorcode) return new PlayerIOError(result.errorcode, result.message);
-            return convertFromKVArray(result.providerarguments);
-        });
+            .then(result => {
+                return convertFromKVArray(result.providerarguments);
+            });
     }
 
-    readContent(content) {
+    protected readContent(content: any) {
         if (content != null) {
             this.currentVersion = content.version;
 
-            this.coins = content.coins || 0;
-            this.items = [];
+            this._coins = content.coins || 0;
+            this._items = [];
 
             if (content.items?.length) {
                 for (let i = 0; i < content.items.length; i++) {
                     let item = content.items[i];
-                    let obj = this.items[i] = new VaultItem(item.id, item.itemkey, new Date(item.purchasedate));
+                    let obj = this.items[i] = new VaultItem(item.id, item.itemkey, item.purchasedate);
 
                     bigDBDeserialize(item.properties, obj, true);
                     this.items[i] = obj; // idk much but i just don't believe it mutates like that.
@@ -228,85 +229,96 @@ module.exports = class PayVault {
             return true;
         } return false;
     }
-};
+}
 
 /**
  * This class represents an item in a user's Vault
  */
-class VaultItem {
-    constructor(id, itemKey, purchaseDate) {
-		/** The unique id of this particular vault item in the user's vault
-		* @type string
-		*/
-		this.id = id;
+export class VaultItem {
+    /** The unique id of this particular vault item in the user's vault
+    */
+    id: string;
 
-		/** The key of the underlying item in the PayVaultItems BigDB table
-		* @type string
-		*/
+    /** The key of the underlying item in the PayVaultItems BigDB table
+    */
+    itemKey: string;
+
+    /** The time when the vault item was originally purchased
+    */
+    purchaseDate: Date;
+
+    constructor(id: string, itemKey: string, purchaseDate: string) {
+		this.id = id;
 		this.itemKey = itemKey;
 
-		/** The time when the vault item was originally purchased
-		* @type Date
-		*/
-		this.purchaseDate = purchaseDate;
+		this.purchaseDate = new Date(purchaseDate);
     }
 }
 
 /**
 * This class represents an entry in a user's PayVault history.
 */
-class PayVaultHistoryEntry {
-    constructor(type, amount, timestamp, itemkeys, reason, providerTransactionId, providerPrice) {
-        /** The type of this entry, for example 'buy','credit','debit'... 
-        * @type string
-        */
+export class PayVaultHistoryEntry {
+    /**
+     * The type of this entry, for example 'buy','credit','debit'... 
+     */
+    type: string;
+    /**
+     * The coin amount of this entry. 
+     */
+    amount: number;
+    /**
+     * When this entry was created. 
+     */
+    timestamp: Date;
+    /**
+     * he item keys related to this entry (entries with type 'buy'). 
+     */
+    itemKeys: string[];
+    /**
+     * The developer supplied reason for entries of type 'credit' and 'debit'. 
+     */
+    reason: string;
+    /**
+     * The transaction id from the PayVault provider corresponding to this entry. 
+     */
+    providerTransactionId: string;
+    /**
+     * The price in real currency of this entry formatted as a human readable currency string, e.g. $10.00 USD 
+     */
+    providerPrice: string;
+
+    constructor(type: string, amount: number, timestamp: number, itemkeys: string[], reason: string, providerTransactionId: string, providerPrice: string) {
+
         this.type = type;
-        /** The coin amount of this entry. 
-        * @type number
-        */
         this.amount = amount;
-        /** When this entry was created. 
-        * @type Date
-        */
-        this.timestamp = new Date().setTime(timestamp);
-        /** The item keys related to this entry (entries with type 'buy'). 
-        * @type string[]
-        */
+        this.timestamp = new Date(timestamp);
         this.itemKeys = itemkeys;
-        /** The developer supplied reason for entries of type 'credit' and 'debit'. 
-        * @type string
-        */
         this.reason = reason;
-        /** The transaction id from the PayVault provider corresponding to this entry. 
-        * @type string
-        */
         this.providerTransactionId = providerTransactionId;
-        /** The price in real currency of this entry formatted as a human readable currency string, e.g. $10.00 USD 
-        * @type string
-        */
         this.providerPrice = providerPrice;
     }
 }
 
-let convertBuyItems = function(items) {
+interface ItemPayload {
+    itemkey: string;
+    [extra: string]: unknown
+};
+
+export function convertBuyItems(items?: Array<any>) {
     if (items == null) return [];
-    let results = [];
+    let results:ItemPayload[] = [];
 
-    for (let i = 0; i != items.length; i++) {
-        let itemKey = items[i].itemkey
+    for (let i = 0; i < items.length; i++) {
+        const itemKey = items[i].itemkey;
 
-        if (!itemKey) {
-            throw Error("You have to specify an itemkey for the payvault item. Example:  {itemkey:'car'}");
-        }
+        if (!itemKey) throw Error("You have to specify an itemkey for the payvault item. Example:  {itemkey:'car'}");
 
         results.push({
             itemkey: itemKey,
             payload: compareForChanges({ itemkey: itemKey }, items[i], true, true)
-        })
+        });
     }
 
     return results;
 }
-
-module.exports.VaultItem = VaultItem;
-module.exports.PayVaultHistoryEntry = PayVaultHistoryEntry;

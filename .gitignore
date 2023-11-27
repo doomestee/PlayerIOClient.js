@@ -1,7 +1,10 @@
 .env
 .vscode
-node_modules
+node_modules/
 package-lock.json
 source.js
-/test
-/test/index.js
+test/
+.gitignore
+bun.lockb
+dist/
+oldlib/

@@ -1,46 +1,45 @@
-const Message = require("./message.js");
+import Message from "../message";
+import { EntryType } from "../constants";
 
-let topPattern = 192; 					  //11000000
-let bottomPattern = 60;                  //00111100
+export const topPattern = 192; 					  //11000000
+export const bottomPattern = 60;                  //00111100
 //------------------------------------------------
-let stringTopPattern = 192; 			  //11000000
-let integerTopPattern = 128; 			  //10000000
-let byteArrayTopPattern = 64; 			  //01000000
+export const stringTopPattern = 192; 			  //11000000
+export const integerTopPattern = 128; 			  //10000000
+export const byteArrayTopPattern = 64; 			  //01000000
 //------------------------------------------------
-let integerBottomPattern = 4; 			  //00000100
-let unsignedIntegerBottomPattern = 8;    //00001000
-let stringBottomPattern = 12; 			  //00001100
-let byteArrayBottomPattern = 16;         //00010000
-let shortLongBottomPattern = 48;         //00110000
-let longBottomPattern = 52; 			  //00110100
-let shortUnsignedLongBottomPattern = 56; //00111000
-let unsignedLongBottomPattern = 60; 	  //00111100
+export const integerBottomPattern = 4; 			  //00000100
+export const unsignedIntegerBottomPattern = 8;    //00001000
+export const stringBottomPattern = 12; 			  //00001100
+export const byteArrayBottomPattern = 16;         //00010000
+export const shortLongBottomPattern = 48;         //00110000
+export const longBottomPattern = 52; 			  //00110100
+export const shortUnsignedLongBottomPattern = 56; //00111000
+export const unsignedLongBottomPattern = 60; 	  //00111100
 //------------------------------------------------
-let doublePattern = 3; 			      //00000011
-let floatPattern = 2; 					  //00000010
-let booleanTruePattern = 1; 			  //00000001
-let booleanFalsePattern = 0;             //00000000
+export const doublePattern = 3; 			      //00000011
+export const floatPattern = 2; 					  //00000010
+export const booleanTruePattern = 1; 			  //00000001
+export const booleanFalsePattern = 0;             //00000000
 
-const { EntryType } = require("./utilities.js");
+export default class MessageSerializer {
+    static serializeMessage(message: Message) {
+        const writer = new ByteWriter();
 
-module.exports = class MessageSerializer {
-    static serializeMessage(message) {
-        let writer = new ByteWriter();
-        
         // write the amount of items as first thing
         writer.writeTagWithLength(message.length, integerTopPattern, integerBottomPattern);
 
         // write the type as the second thing
-        let bytes = binaryserializer.bytesFromString(message.type);
+        let bytes = BinarySerializer.bytesFromString(message.type);
         writer.writeTagWithLength(bytes.length, stringTopPattern, stringBottomPattern);
         writer.writeBytes(bytes);
 
         // write all the contents of the message
         for (let i = 0; i != message.length; i++) {
-            let value = message._internal_('get-objects')[i];
+            let value = message._internal_('get-objects')[i] as any;
             switch (message._internal_('get-types')[i]) {
                 case EntryType.String:
-                    let bytes = binaryserializer.bytesFromString(value);
+                    let bytes = BinarySerializer.bytesFromString(value);
                     writer.writeTagWithLength(bytes.length, stringTopPattern, stringBottomPattern);
                     writer.writeBytes(bytes);
                     break;
@@ -48,13 +47,13 @@ module.exports = class MessageSerializer {
                     writer.writeTagWithLength(value, integerTopPattern, integerBottomPattern);
                     break;
                 case EntryType.UnsignedInteger:
-                    writer.writeBottomPatternAndBytes(unsignedIntegerBottomPattern, binaryserializer.bytesFromUInt(value))
+                    writer.writeBottomPatternAndBytes(unsignedIntegerBottomPattern, BinarySerializer.bytesFromUInt(value))
                     break;
                 case EntryType.Long:
-                    writer.writeLongPattern(shortLongBottomPattern, longBottomPattern, binaryserializer.bytesFromLong(value));
+                    writer.writeLongPattern(shortLongBottomPattern, longBottomPattern, BinarySerializer.bytesFromLong(value));
                     break;
                 case EntryType.UnsignedLong:
-                    writer.writeLongPattern(shortUnsignedLongBottomPattern, unsignedLongBottomPattern, binaryserializer.bytesFromULong(value));
+                    writer.writeLongPattern(shortUnsignedLongBottomPattern, unsignedLongBottomPattern, BinarySerializer.bytesFromULong(value));
                     break;
                 case EntryType.ByteArray:
                     writer.writeTagWithLength(value.length, byteArrayTopPattern, byteArrayBottomPattern);
@@ -62,11 +61,11 @@ module.exports = class MessageSerializer {
                     break;
                 case EntryType.Double:
                     writer.writeByte(doublePattern);
-                    writer.writeBytes(binaryserializer.bytesFromDouble(value));
+                    writer.writeBytes(BinarySerializer.bytesFromDouble(value));
                     break;
                 case EntryType.Float:
                     writer.writeByte(floatPattern);
-                    let fb = binaryserializer.bytesFromFloat(value);
+                    let fb = BinarySerializer.bytesFromFloat(value);
                     writer.writeBytes(fb);
                     break;
                 case EntryType.Boolean:
@@ -78,10 +77,10 @@ module.exports = class MessageSerializer {
         return writer.bytes;
     }
 
-    static deserializeMessage(bytes, start, count) {
+    static deserializeMessage(bytes: number[] | Uint8Array | Buffer, start: number, count: number) {
         let position = start;
         let end = start + count;
-        let output = null;
+        let output:Message|null = null;
         let partsInMessage = 0;
 
         while (position < end) {
@@ -112,7 +111,7 @@ module.exports = class MessageSerializer {
 
                     // read the bytes containing the length
                     let jump = length;
-                    length = binaryserializer.intFromBytes(bytes, position, length);
+                    length = BinarySerializer.intFromBytes(bytes, position, length);
                     position += jump; // move forward over the bytes containing the length
                     break;
                 case stringTopPattern: length = tag & 63; break;
@@ -145,34 +144,35 @@ module.exports = class MessageSerializer {
                 case stringBottomPattern:
                 case stringTopPattern:
                     if (output == null) {
-                        output = new Message(binaryserializer.stringFromBytes(bytes, position, length));
+                        output = new Message(BinarySerializer.stringFromBytes(bytes, position, length));
                         partsInMessage++; //Add one to parts since the type of the message isn't counted as a parameter.
                     } else {
-                        output.addString(binaryserializer.stringFromBytes(bytes, position, length));
+                        output.addString(BinarySerializer.stringFromBytes(bytes, position, length));
                     }
                     break;
+                // @ts-ignore
                 case integerBottomPattern:
-                    value = binaryserializer.intFromBytes(bytes, position, length);
+                    value = BinarySerializer.intFromBytes(bytes, position, length);
                 case integerTopPattern:
                     if (partsInMessage == 0) {
                         //If partsInMessage is 0, then we've just started deserializing a new message, which means that
                         //the first integer is the number of parameters in the message.
                         partsInMessage = value;
                     } else {
-                        output.addInt(value);
+                        output!.addInt(value);
                     }
                     break;
                 case byteArrayBottomPattern:
-                case byteArrayTopPattern: output.addByteArray(bytes.slice(position, position + length)); break;
-                case unsignedIntegerBottomPattern: output.addUInt(binaryserializer.uintFromBytes(bytes, position, length)); break;
+                case byteArrayTopPattern: output!.addByteArray(bytes.slice(position, position + length)); break;
+                case unsignedIntegerBottomPattern: output!.addUInt(BinarySerializer.uintFromBytes(bytes, position, length)); break;
                 case shortLongBottomPattern:
-                case longBottomPattern: output.addLong(binaryserializer.longFromBytes(bytes, position, length)); break;
+                case longBottomPattern: output!.addLong(BinarySerializer.longFromBytes(bytes, position, length)); break;
                 case shortUnsignedLongBottomPattern:
-                case unsignedLongBottomPattern: output.addULong(binaryserializer.ulongFromBytes(bytes, position, length)); break;
-                case doublePattern: output.addDouble(binaryserializer.doubleFromBytes(bytes, position, length)); break;
-                case floatPattern: output.addFloat(binaryserializer.floatFromBytes(bytes, position, length)); break;
-                case booleanTruePattern: output.addBoolean(true); break;
-                case booleanFalsePattern: output.addBoolean(false); break;
+                case unsignedLongBottomPattern: output!.addULong(BinarySerializer.ulongFromBytes(bytes, position, length)); break;
+                case doublePattern: output!.addDouble(BinarySerializer.doubleFromBytes(bytes, position, length)); break;
+                case floatPattern: output!.addFloat(BinarySerializer.floatFromBytes(bytes, position, length)); break;
+                case booleanTruePattern: output!.addBoolean(true); break;
+                case booleanFalsePattern: output!.addBoolean(false); break;
             }
 
             // move forward
@@ -187,12 +187,14 @@ module.exports = class MessageSerializer {
     }
 }
 
-const binaryserializer = {
-    pow2 : function(n) {
-        return (n >= 0 && n < 31) ? (1 << n) : (this.pow2[n] || (this.pow2[n] = Math.pow(2, n)));
-    },
-    _intEncode: function (value, bytes) {
-        
+export class BinarySerializer {
+    protected static power2:{ [n: number]: number } = {};
+
+    static pow2(n: number) : number {
+        return (n >= 0 && n < 31) ? (1 << n) : (this.power2[n] || (this.power2[n] = Math.pow(2, n)));
+    }
+
+    static _intEncode(value: number, bytes: number) {
         let b = new Array(bytes);
         if (bytes == 4) {
             b = [(value >>> 24) & 0xff, (value >>> 16) & 0xff, (value >>> 8) & 0xff, value & 0xff];
@@ -209,12 +211,12 @@ const binaryserializer = {
             }
         }
         return b;
-    },
-    _floatEncode: function (value, mantSize, expSize) {
-        
+    }
+
+    static _floatEncode(value: number, mantSize: number, expSize: number) {
         let signBit = value < 0 ? 1 : 0,
-            exponent,
-            mantissa,
+            exponent:number,
+            mantissa:number,
             eMax = ~(-1 << (expSize - 1)),
             eMin = 1 - eMax;
 
@@ -242,7 +244,7 @@ const binaryserializer = {
             }
         }
 
-        let b = [];
+        let b:number[] = [];
         while (mantSize >= 8) {
             b.push(mantissa % 256);
             mantissa = Math.floor(mantissa / 256);
@@ -258,9 +260,11 @@ const binaryserializer = {
         b.push((signBit << expSize) | exponent);
         b.reverse(); //big endian
         return b;
-    },
-    bytesFromString: function (value) {
-        let byteArray = [];
+    }
+
+
+    static bytesFromString(value: string) {
+        let byteArray:number[] = [];
         for (let i = 0; i < value.length; i++) {
             if (value.charCodeAt(i) <= 0x7F) {
                 byteArray.push(value.charCodeAt(i));
@@ -272,28 +276,33 @@ const binaryserializer = {
             }
         }
         return byteArray;
-    },
-    bytesFromInt: function (value) {
-        return this._intEncode(value, 4);
-    },
-    bytesFromUInt: function (value) {
-        return this._intEncode(value, 4);
-    },
-    bytesFromLong: function (value) {
-        return this._intEncode(value, 8);
-    },
-    bytesFromULong: function (value) {
-        return this._intEncode(value, 8);
-    },
-    bytesFromFloat: function (value) {
-        return this._floatEncode(value, 23, 8);
-    },
-    bytesFromDouble: function (value) {
-        return this._floatEncode(value, 52, 11);
-    },
-    //------------
+    }
 
-    _intDecode: function (bytes, position, length, typeBytes, signed) {
+    static bytesFromInt(value: number) {
+        return this._intEncode(value, 4);
+    }
+
+    static bytesFromUInt(value: number) {
+        return this._intEncode(value, 4);
+    }
+
+    static bytesFromLong(value: number) {
+        return this._intEncode(value, 8);
+    }
+
+    static bytesFromULong(value: number) {
+        return this._intEncode(value, 8);
+    }
+
+    static bytesFromFloat(value: number) {
+        return this._floatEncode(value, 23, 8);
+    }
+
+    static bytesFromDouble(value: number) {
+        return this._floatEncode(value, 52, 11);
+    }
+
+    static _intDecode(bytes: number[] | Uint8Array | Buffer, position: number, length: number, typeBytes: number, signed: boolean) {
         let end = position + length - 1;
         let negate = signed && length == typeBytes && bytes[position] & 0x80;
         let value = 0, carry = 1;
@@ -308,9 +317,9 @@ const binaryserializer = {
         }
         value = negate ? -value : value;
         return value;
-    },
-    _float32Decode: function (bytes, position) {
-        
+    }
+
+    static _float32Decode(bytes: number[] | Uint8Array | Buffer, position: number) {
         let b = bytes.slice(position, position + 4).reverse(),
             sign = 1 - (2 * (b[3] >> 7)),
             exponent = (((b[3] << 1) & 0xff) | (b[2] >> 7)) - 127,
@@ -329,9 +338,9 @@ const binaryserializer = {
         }
 
         return sign * (1 + mantissa * this.pow2(-23)) * this.pow2(exponent);
-    },
-    _float64Decode: function (bytes, position) {
-        
+    }
+
+    static _float64Decode(bytes: number[] | Uint8Array | Buffer, position: number) {
         let b = bytes.slice(position, position + 8).reverse(),
             sign = 1 - (2 * (b[7] >> 7)),
             exponent = ((((b[7] << 1) & 0xff) << 3) | (b[6] >> 4)) - ((1 << 10) - 1),
@@ -351,34 +360,41 @@ const binaryserializer = {
         }
 
         return sign * (1 + mantissa * this.pow2(-52)) * this.pow2(exponent);
-    },
-    stringFromBytes: function (bytes, position, length) {
+    }
+
+    static stringFromBytes(bytes: number[] | Uint8Array | Buffer, position: number, length: number) {
         let str = '';
         for (let i = position; i < position + length; i++) str += bytes[i] <= 0x7F ?
             bytes[i] === 0x25 ? "%25" : // %
             String.fromCharCode(bytes[i]) :
             "%" + bytes[i].toString(16).toUpperCase();
         return decodeURIComponent(str);
-    },
-    intFromBytes: function (bytes, position, length) {
+    }
+
+    static intFromBytes(bytes: number[] | Uint8Array | Buffer, position: number, length: number) {
         return this._intDecode(bytes, position, length, 4, true);
-    },
-    uintFromBytes: function (bytes, position, length) {
+    }
+
+    static uintFromBytes(bytes: number[] | Uint8Array | Buffer, position: number, length: number) {
         return this._intDecode(bytes, position, length, 4, false);
-    },
-    longFromBytes: function (bytes, position, length) {
+    }
+
+    static longFromBytes(bytes: number[] | Uint8Array | Buffer, position: number, length: number) {
         return this._intDecode(bytes, position, length, 8, true);
-    },
-    ulongFromBytes: function (bytes, position, length) {
+    }
+
+    static ulongFromBytes(bytes: number[] | Uint8Array | Buffer, position: number, length: number) {
         return this._intDecode(bytes, position, length, 8, false);
-    },
-    floatFromBytes: function (bytes, position, length) {
+    }
+
+    static floatFromBytes(bytes: number[] | Uint8Array | Buffer, position: number, length: number) {
         if (length == 4) {
             return this._float32Decode(bytes, position);
         }
         return NaN;
-    },
-    doubleFromBytes: function (bytes, position, length) {
+    }
+    
+    static doubleFromBytes(bytes: number[] | Uint8Array | Buffer, position: number, length: number) {
         if (length == 8) {
             return this._float64Decode(bytes, position);
         }
@@ -386,32 +402,33 @@ const binaryserializer = {
     }
 }
 
+export class ByteWriter {
+    bytes: number[];
 
-class ByteWriter {
     constructor() {
         this.bytes = [];
     }
 
-    writeByte(byte) {
+    writeByte(byte: number) {
         if (byte >= 0 && byte < 256) this.bytes.push(byte);
         else throw Error("This is not a byte value: " + byte); 
     }
 
-    writeBytes(bytes) {
+    writeBytes(bytes: number[]) {
         for (let i = 0; i != bytes.length; i++) {
             this.writeByte(bytes[i]);
         }
     }
 
-    writeTagWithLength(length, topPattern, bottomPattern) {
+    writeTagWithLength(length: number, topPattern: number, bottomPattern: number) {
         if (length > 63 || length < 0) {
-            this.writeBottomPatternAndBytes(bottomPattern, binaryserializer.bytesFromInt(length))
+            this.writeBottomPatternAndBytes(bottomPattern, BinarySerializer.bytesFromInt(length))
         } else {
             this.writeByte(topPattern | length);
         }
     }
 
-    writeBottomPatternAndBytes(pattern, bytes) {
+    writeBottomPatternAndBytes(pattern: number, bytes: number[]) {
         let count = 0;
         if (bytes[0] != 0)      count = 3
         else if (bytes[1] != 0) count = 2;
@@ -423,7 +440,7 @@ class ByteWriter {
         }
     }
 
-    writeLongPattern(shortPattern, longPattern, bytes) {
+    writeLongPattern(shortPattern: number, longPattern: number, bytes: number[]) {
         let count = 0;
         for (let i = 0; i != 7; i++) {
             if (bytes[i] != 0) {
@@ -444,5 +461,79 @@ class ByteWriter {
     }
 }
 
-module.exports.ByteWriter = ByteWriter;
-module.exports.binaryserializer = binaryserializer;
+/**
+ * simple bas64 round trip methods for arrays of bytes (0-255)
+ */
+export class Base64Processer {
+    static readonly codex = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    static readonly _inverseCodex: { [codexCharCode: number]: number } = {};//this.codex.split("").map(v => );
+
+    static get inverseCodex() {
+        if (this._inverseCodex[43]) { // 43 exists
+            return this._inverseCodex;
+        }
+
+        for (let i = 0; i < this.codex.length; i++) {
+            this._inverseCodex[this.codex.charCodeAt(i)] = i;
+        }
+
+        return this._inverseCodex;
+    }
+
+    static encode(bytes: number[]|Uint8Array|Buffer) {
+        const output = [];
+
+		for (var b = 0; b < bytes.length; b++) {
+			// pick the 3 bytes
+			var b1 = bytes[b];
+			var b2 = ++b <= bytes.length ? bytes[b] : NaN;
+			var b3 = ++b <= bytes.length ? bytes[b] : NaN;
+
+			// encode them together
+			var enc1 = b1 >> 2;
+			var enc2 = ((b1 & 3) << 4) | (b2 >> 4);
+			var enc3 = ((b2 & 15) << 2) | (b3 >> 6);
+			var enc4 = b3 & 63;
+
+			// overflow w. /
+			if (Number.isNaN(b2)) {
+				enc3 = enc4 = 64;
+			} else if (Number.isNaN(b3)) {
+				enc4 = 64;
+			}
+
+			output.push(this.codex.charAt(enc1));
+			output.push(this.codex.charAt(enc2));
+			output.push(this.codex.charAt(enc3));
+			output.push(this.codex.charAt(enc4));
+		}
+
+		return output.join("");
+    }
+
+	static decode(str: string) {
+		const output = [];
+
+		for (var c = 0; c < str.length; c++) {
+			// pick the 4 characters representing 3 bytes
+			var chr1 =                    this.inverseCodex[str.charCodeAt(c)];
+			var chr2 = ++c < str.length ? this.inverseCodex[str.charCodeAt(c)] : 64;
+			var chr3 = ++c < str.length ? this.inverseCodex[str.charCodeAt(c)] : 64;
+			var chr4 = ++c < str.length ? this.inverseCodex[str.charCodeAt(c)] : 64;
+
+			// encode them together
+			var b1 = (chr1 << 2) | (chr2 >> 4);
+			var b2 = ((chr2 & 15) << 4) | (chr3 >> 2);
+			var b3 = ((chr3 & 3) << 6) | chr4;
+
+			output.push(b1);
+			if (chr3 != 64) {
+				output.push(b2);
+				if (chr4 != 64) {
+					output.push(b3);
+				}
+			}
+		}
+		return output;
+	}
+}

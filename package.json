@@ -1,31 +1,42 @@
 {
   "name": "playerioclient",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "description": "A wrapper that sends requests and connects to PlayerIO via HTTP and WS respectively.",
   "homepage": "https://github.com/doomestee/PlayerIOClient.js",
   "repository": "doomestee/PlayerIOClient.js",
-  "main": "index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "node ./test/index.js"
+    "test": "node ./test/index.js",
+    "build": "rimraf dist && tsc -p tsconfig.json",
+    "prepare": "tsc -p tsconfig.json"
   },
   "exports": {
     ".": {
-      "require": "./index.js"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./esm.mjs",
+      "bun": "./dist/index.js"
     },
     "./package.json": "./package.json"
   },
   "keywords": [
     "PlayerIO",
-    "JavaScript"
+    "JavaScript",
+    "TypeScript"
   ],
   "author": "Doomester",
   "license": "MIT",
   "dependencies": {
-    "bytearray-node": "^3.3.5",
-    "undici": "^5.23.0",
+    "iconv-lite": "^0.6.3",
+    "tslib": "^2.6.2",
     "ws": "^8.13.0"
   },
   "devDependencies": {
-    "dotenv": "^16.3.1"
+    "@types/node": "^20.10.0",
+    "@types/ws": "^8.5.10",
+    "dotenv": "^16.3.1",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.3.2"
   }
 }

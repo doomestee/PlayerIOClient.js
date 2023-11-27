@@ -1,22 +1,21 @@
-module.exports = class PlayerIOError extends Error {
-    constructor(code, message) {
+/** @module PlayerIOError */
+
+export default class PlayerIOError extends Error {
+    /**
+     * The PlayerIO error code for this error
+     */
+    code: string;
+
+    constructor(code: string, message: string) {
         super(message);
 
-        /** The PlayerIO error code for this error
-        * @type string
-        */
-        this.code = code
-    
-        /** The error message for this error
-        * @type string
-        */
-        this.message = message
-
+        this.code = code;
     }
 
-    /** Get a string representation of error
-    * @return string */
-    toString() {
+    /**
+     * Get a string representation of the error
+     */
+    override toString() : string {
         return "PlayerIOError[" + this.code + "]: " + this.message;
     }
 
@@ -148,5 +147,5 @@ module.exports = class PlayerIOError extends Error {
         /** Check cookie required. */
         AdTrackCheckCookie:"AdTrackCheckCookie",
         codes:{0:"UnsupportedMethod",1:"GeneralError",2:"InternalError",3:"AccessDenied",4:"InvalidMessageFormat",5:"MissingValue",6:"GameRequired",7:"ExternalError",8:"ArgumentOutOfRange",9:"GameDisabled",10:"UnknownGame",11:"UnknownConnection",12:"InvalidAuth",13:"NoServersAvailable",14:"RoomDataTooLarge",15:"RoomAlreadyExists",16:"UnknownRoomType",17:"UnknownRoom",18:"MissingRoomId",19:"RoomIsFull",20:"NotASearchColumn",21:"QuickConnectMethodNotEnabled",22:"UnknownUser",23:"InvalidPassword",24:"InvalidRegistrationData",25:"InvalidBigDBKey",26:"BigDBObjectTooLarge",27:"BigDBObjectDoesNotExist",28:"UnknownTable",29:"UnknownIndex",30:"InvalidIndexValue",31:"NotObjectCreator",32:"KeyAlreadyUsed",33:"StaleVersion",34:"CircularReference",40:"HeartbeatFailed",41:"InvalidGameCode",50:"VaultNotLoaded",51:"UnknownPayVaultProvider",52:"DirectPurchaseNotSupportedByProvider",54:"BuyingCoinsNotSupportedByProvider",55:"NotEnoughCoins",56:"ItemNotInVault",57:"InvalidPurchaseArguments",58:"InvalidPayVaultProviderSetup",70:"UnknownPartnerPayAction",80:"InvalidType",81:"IndexOutOfBounds",82:"InvalidIdentifier",83:"InvalidArgument",84:"LoggedOut",90:"InvalidSegment",100:"GameRequestsNotLoaded",110:"AchievementsNotLoaded",111:"UnknownAchievement",120:"NotificationsNotLoaded",121:"InvalidNotificationsEndpoint",130:"NetworkIssue",131:"OneScoreNotLoaded",200:"PublishingNetworkNotAvailable",201:"PublishingNetworkNotLoaded",301:"DialogClosed",302:"AdTrackCheckCookie"}
-    }
+    } as const;
 }

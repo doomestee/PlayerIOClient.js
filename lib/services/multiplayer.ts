@@ -1,20 +1,30 @@
-const { convertToKVArray, convertFromKVArray } = require("./utilities.js");
-const RoomInfo = require("./room.js");
-const Connection = require("./connection.js");
-const PlayerIOError = require("./playerioerror.js");
+/** @module Multiplayer */
 
-module.exports = class Multiplayer {
+import type HTTPChannel from "../channel";
+import Connection from "./connection";
+import { convertToKVArray, convertFromKVArray } from "../utilities/util";
+
+//const { convertToKVArray, convertFromKVArray } = require("./utilities.js");
+//const RoomInfo = require("./room.js");
+//const Connection = require("./connection.js");
+//const PlayerIOError = require("./playerioerror.js");
+
+interface GenericObject {
+    [key: string]: unknown
+}
+
+export default class Multiplayer {
+    protected channel: HTTPChannel;
+
     /**
-     * @param {import("./channel")} channel
+     * If not null, rooms will be created on the development server at the address defined by the server endpoint, instead of using the live multiplayer servers.
      */
-    constructor(channel) {
-        /** 
-        * If not null, rooms will be created on the development server at the address defined by the server endpoint, instead of using the live multiplayer servers. 
-        * @type string
-        */
-        this.developmentServer = null;
+    developmentServer: string | null;
 
+    constructor(channel: HTTPChannel) {
         this.channel = channel;
+
+        this.developmentServer = null;
     }
 
 
@@ -25,11 +35,9 @@ module.exports = class Multiplayer {
     * @param {number} visible Should the room be visible when listing rooms with GetRooms or not?
     * @param {object} roomData The data to initialize the room with, this can be read with ListRooms and changed from the serverside.
     */
-    createRoom(roomId, roomType, visible, roomData) {
+    createRoom(roomId: string, roomType: string, visible: boolean, roomData?: GenericObject) {
         return this.channel.createRoom(roomId, roomType, visible, convertToKVArray(roomData), this.developmentServer != null)
             .then((result) => {
-                if (result.errorcode) throw new PlayerIOError(result.errorcode, result.message);
-
                 return result.roomid;
             });
     }
@@ -40,11 +48,9 @@ module.exports = class Multiplayer {
     * @param {string} joinData Data to send to the room with additional information about the join.
     * @returns {Promise<Connection|Error>}
     */
-    joinRoom(roomId, joinData) {
+    joinRoom(roomId: string, joinData?: GenericObject) {
         return this.channel.joinRoom(roomId, convertToKVArray(joinData), this.developmentServer != null, true)
             .then(result => {
-                if (result.errorcode) throw new PlayerIOError(result.errorcode, result.message);
-
                 let conn = new Connection(this.developmentServer, result.endpoints, result.joinkey, joinData || {});
 
                 return conn.connect();
@@ -60,11 +66,9 @@ module.exports = class Multiplayer {
     * @param {object} joinData Data to send to the room with additional information about the join.
     * @returns {Promise<Connection|Error>}
     */
-    createJoinRoom(roomId, roomType, visible, roomData, joinData) {
+    createJoinRoom(roomId: string, roomType: string, visible: boolean, roomData?: GenericObject, joinData?: GenericObject) {
         return this.channel.createJoinRoom(roomId, roomType, visible, convertToKVArray(roomData), convertToKVArray(joinData), this.developmentServer != null, true)
             .then(result => {
-                if (result.errorcode) throw new PlayerIOError(result.errorcode, result.message);
-
                 let conn = new Connection(this.developmentServer, result.endpoints, result.joinkey, joinData || {});
 
                 return conn.connect();
@@ -79,12 +83,10 @@ module.exports = class Multiplayer {
     * @param {number} resultOffset The offset into the list you wish to start listing at.
     * @returns {Promise<RoomInfo[]>}
     */
-    listRooms(roomType, searchCriteria, resultLimit, resultOffset) {
+    listRooms(roomType: string, searchCriteria: GenericObject | undefined, resultLimit:number = 0, resultOffset?: number) {
         return this.channel.listRooms(roomType, convertToKVArray(searchCriteria), resultLimit, resultOffset, this.developmentServer != null)
             .then(result => {
-                if (result.errorcode) throw new PlayerIOError(result.errorcode, result.message);
-                
-                let arr = [];
+                let arr:RoomInfo[] = [];
 
                 if (result.rooms?.length > 0) {
                     for (let i = 0; i < result.rooms.length; i++) {
@@ -94,5 +96,34 @@ module.exports = class Multiplayer {
                     }
                 }; return arr;
             })
+    }
+}
+
+/**
+ * Information about a room returned from listRooms.
+ */
+export class RoomInfo {
+    /**
+     * The id of the room.
+     */
+    id: string;
+    /**
+     * The type of the room (coresponding to the [RoomType(...)] attribute assignd to the room).
+     */
+    roomType: string;
+    /**
+     * How many users are currently in the room
+     */
+    onlineUsers: number;
+    /**
+     * lmao
+     */
+    roomData: object;
+
+    constructor(id: string, roomType: string, onlineUsers: number, roomData: object) {
+        this.id = id;
+        this.roomType = roomType;
+        this.onlineUsers = onlineUsers;
+        this.roomData = roomData;
     }
 }
