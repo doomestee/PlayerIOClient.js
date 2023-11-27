@@ -3,7 +3,10 @@
   "version": "0.5.0",
   "description": "A wrapper that sends requests and connects to PlayerIO via HTTP and WS respectively.",
   "homepage": "https://github.com/doomestee/PlayerIOClient.js",
-  "repository": "doomestee/PlayerIOClient.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/doomestee/PlayerIOClient.js.git"
+  },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
