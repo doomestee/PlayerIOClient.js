@@ -1,9 +1,10 @@
 .env
 .vscode
 node_modules/
-package-lock.json
 source.js
 test/
+
+# notice this line here, why tf does this not work
 .gitignore
 bun.lockb
 dist/
