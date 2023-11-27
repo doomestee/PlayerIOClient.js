@@ -181,7 +181,7 @@ export default class Achievements {
     }
 }
 
-class Achievement {
+export class Achievement {
     /**
      * The id of this achievement.
      */

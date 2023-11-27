@@ -3,23 +3,22 @@
 export { default as PlayerIOClient } from "./client";
 export { default as Message } from "./message";
 export { default as HTTPChannel } from "./channel";
+export { default as Connection } from "./connection";
 export { default as QuickConnect } from "./quickconnect";
 export * as Constants from "./constants";
 
 export { default as PlayerIOError } from "./error";
 
 // services
-import Achievements from "./services/achievements";
-import BigDB from "./services/bigdb";
-import Connection from "./services/connection";
-import GameFS from "./services/gamefs";
-import Multiplayer from "./services/multiplayer";
-import PayVault from "./services/payvault";
+import { default as Achievements } from "./services/achievements";
+import { default as BigDB } from "./services/bigdb";
+import { default as GameFS } from "./services/gamefs";
+import { default as Multiplayer } from "./services/multiplayer";
+import { default as PayVault } from "./services/payvault";
 
 export const Services = {
     Achievements,
     BigDB,
-    Connection,
     GameFS,
     Multiplayer,
     PayVault

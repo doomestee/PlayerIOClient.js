@@ -1,7 +1,7 @@
 /** @module Multiplayer */
 
 import type HTTPChannel from "../channel";
-import Connection from "./connection";
+import Connection from "../connection";
 import { convertToKVArray, convertFromKVArray } from "../utilities/util";
 
 //const { convertToKVArray, convertFromKVArray } = require("./utilities.js");

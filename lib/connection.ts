@@ -1,9 +1,9 @@
 /** @module Connection */
-import Message from "../message";
-import MessageSerializer, { Base64Processer } from "../utilities/messageserialiser";
+import Message from "./message";
+import MessageSerializer, { Base64Processer } from "./utilities/messageserialiser";
 import WebSocket from "ws";
 import type { CloseEvent, ErrorEvent } from "ws";
-import PlayerIOError from "../error";
+import PlayerIOError from "./error";
 
 interface Endpoint {
     port: number;
@@ -56,7 +56,7 @@ export default class Connection {
         }
     }
 
-    connect() {
+    connect() : Promise<Connection> {
         return new Promise((res, rej) => {
             if (this.connected) throw Error("Socket's already connected, disconnect first.");
 
