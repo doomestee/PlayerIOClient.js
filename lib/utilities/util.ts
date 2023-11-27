@@ -20,7 +20,7 @@ export function convertToKVArray(obj?: KeyValue) : KVArray {
 
 	if (obj) {
 		for (let k in obj) {
-			result.push({ key: k, value: ('' + obj["k"]) });
+			result.push({ key: k, value: ('' + obj[k]) });
 		}
 	}; return result;
 }
