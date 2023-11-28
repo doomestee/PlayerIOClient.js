@@ -2,6 +2,7 @@
     "compilerOptions": {
       "outDir": "dist",
       "lib": [
+        "DOM",
         "ES2015",
         "ES2016",
         "ES2017",
@@ -12,7 +13,7 @@
         "ES2022"
       ],
       "module": "CommonJS",
-      "target": "ES2022",
+      "target": "ES6",
       "inlineSourceMap": true,
       "importHelpers": true,
       "newLine": "LF",
