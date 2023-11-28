@@ -1,8 +1,8 @@
 /** @module Connection */
 import Message from "./message";
 import MessageSerializer, { Base64Processer } from "./utilities/messageserialiser";
-import WebSocket from "ws";
-import type { CloseEvent, ErrorEvent } from "ws";
+import WebSocket from "isomorphic-ws";
+import type { CloseEvent, ErrorEvent } from "isomorphic-ws";
 import PlayerIOError from "./error";
 
 interface Endpoint {
@@ -71,7 +71,7 @@ export default class Connection {
                 let endpoint = this.endpointStrings.splice(0, 1)[0];
 
                 // attempt to create a socket connection
-                this.socket = new WebSocket(((this.developmentServer) ? "ws://" : "wss://") + endpoint + "/", { timeout: 4000 });
+                this.socket = new WebSocket(((this.developmentServer) ? "ws://" : "wss://") + endpoint + "/");
                 this.socket.binaryType = "arraybuffer";
 
                 // I'm using addeventlistener since it's the common thing in browser/node/bun.
