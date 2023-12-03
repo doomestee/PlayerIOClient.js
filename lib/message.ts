@@ -254,7 +254,7 @@ export default class Message<T=string> {
 
     addT(check: boolean, value: any, type: EntryType, errorMessage: string) {
         if (check) {
-            if (type === EntryType.ByteArray && Array.isArray(value)) value = new ByteArray(value);
+            if (type === EntryType.ByteArray) value = new ByteArray(value);
 
             this.objects.push(value);
             this.types.push(type);

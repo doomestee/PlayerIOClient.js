@@ -2,6 +2,7 @@
 
 import { decode, encode, encodingExists } from "iconv-lite";
 import { deflateRawSync, inflateRawSync } from "zlib";
+import type { InputType, ZlibOptions } from "zlib";
 
 export enum Endian {
     LITTLE_ENDIAN = "LE",
@@ -20,9 +21,9 @@ export default class ByteArray {
      */
     protected hashendian:"LE"|"BE" = "BE";
 
-    constructor(buffer:Buffer|Array<number>|number) {
+    constructor(buffer:Buffer|Array<number>|number|Uint8Array) {
         this.buffer = Buffer.isBuffer(buffer) ? buffer
-            : Array.isArray(buffer) ? Buffer.from(buffer)
+            : Array.isArray(buffer) || buffer instanceof Uint8Array ? Buffer.from(buffer)
                 : Number.isInteger(buffer) ? Buffer.alloc(buffer) : Buffer.alloc(0);
     }
 
@@ -140,6 +141,10 @@ export default class ByteArray {
 
         this.buffer = deflateRawSync(this.buffer);
         this.hashposition = this.length;
+    }
+
+    static compressor(buf: InputType, options?: ZlibOptions) {
+        return deflateRawSync(buf, options);
     }
 
     /**
@@ -302,6 +307,10 @@ export default class ByteArray {
         this.hashposition = 0;
     }
 
+    static uncompressor(buf: InputType, options?: ZlibOptions) {
+        return inflateRawSync(buf, options);
+    }
+
     /**
      * Writes a boolean (internally a 0 or 1)
      */
@@ -320,7 +329,7 @@ export default class ByteArray {
     /**
      * Writes multiple signed bytes to a ByteArray
      */
-    writeBytes(bytes:ByteArray|Buffer, offset:number = 0, length:number = 0):void {
+    writeBytes(bytes:ByteArray|Buffer|Array<any>, offset:number = 0, length:number = 0):void {
         if (length === 0) {
             length = bytes.length - offset;
         }
@@ -328,8 +337,10 @@ export default class ByteArray {
         this.hashexpand(length);
 
         for (let i = 0; i < length; i++) {
-            this.buffer[i + this.hashposition] = Buffer.isBuffer(bytes) ? bytes[i + offset] : bytes.buffer[i + offset];
+            this.buffer[i + this.hashposition] = Buffer.isBuffer(bytes) || bytes instanceof Array ? bytes[i + offset] : bytes.buffer[i + offset];
         }
+
+        this.hashposition += length;
     }
 
 
