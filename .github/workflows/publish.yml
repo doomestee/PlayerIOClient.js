@@ -1,16 +1,31 @@
-on:
-  push:
-    branches: main
+on: [workflow_dispatch]
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+      - name: Install Node
+        uses: actions/setup-node@v3
         with:
           node-version: "20"
-      - run: npm ci
-      - uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm i --frozen-lockfile
+      - name: Publish
+        run: pnpm publish --provenance --no-git-checks --tag latest --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Deprecate Old Versions
+        run: npx -y npm-deprecate
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
