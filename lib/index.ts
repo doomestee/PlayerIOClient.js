@@ -1,6 +1,9 @@
 'use strict';
 
-export { default as PlayerIOClient } from "./client";
+import PlayerIOClient from "./client";
+
+export { PlayerIOClient };
+export default PlayerIOClient;
 export { default as Message } from "./message";
 export { default as HTTPChannel } from "./channel";
 export { default as Connection } from "./connection";

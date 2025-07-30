@@ -2,3 +2,9 @@ lib/
 tsconfig.json
 .vscode/
 .github/
+webpack.config.cjs
+pnpm-lock.yaml
+.npm-deprecaterc.json
+buf.gen.yaml
+input/
+examples/

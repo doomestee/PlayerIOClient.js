@@ -1,6 +1,6 @@
 {
   "name": "playerioclient",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A wrapper that sends requests and connects to PlayerIO via HTTP and WS respectively.",
   "homepage": "https://github.com/doomestee/PlayerIOClient.js",
   "repository": {
@@ -11,32 +11,27 @@
   "types": "./dist/index.d.ts",
   "scripts": {
     "test": "node ./test/index.js",
-    "build": "rimraf dist && tsc -p tsconfig.json",
+    "build": "rimraf esm cm && tsc -p tsconfig-cm.json & tsc -p tsconfig-esm.json",
     "browsify": "rimraf browser && npm-run-all -p browsify-*",
     "browsify-prod": "NODE_ENV=production webpack --mode=production",
     "browsify-dev": "NODE_ENV=development webpack --mode=development",
-    "prepare": "tsc -p tsconfig.json && npm run browsify"
+    "prepare": "run-s build browsify"
   },
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./esm.mjs",
-      "bun": "./dist/index.js"
-    },
-    "./package.json": "./package.json"
+    "types": "./esm/index.js",
+    "import": "./esm/index.js",
+    "require": "./cm/index.js"
   },
   "keywords": [
     "PlayerIO",
-    "JavaScript",
-    "TypeScript"
+    "JavaScript"
   ],
   "author": "Doomester",
   "license": "MIT",
   "dependencies": {
     "iconv-lite": "^0.6.3",
     "isomorphic-ws": "^5.0.0",
-    "tslib": "^2.6.2",
+    "tslib": "~2.8.1",
     "ws": "^8.13.0"
   },
   "devDependencies": {
@@ -47,11 +42,11 @@
     "buffer": "^6.0.3",
     "dotenv": "^16.3.1",
     "npm-run-all": "^4.1.5",
+    "process": "^0.11.10",
     "rimraf": "^5.0.5",
     "stream-browserify": "^3.0.0",
     "typescript": "^5.3.2",
-    "webpack": "^5.89.0",
-    "webpack-cli": "^5.1.4",
-    "process": "^0.11.10"
+    "webpack": "~5.97.1",
+    "webpack-cli": "~6.0.1"
   }
 }
