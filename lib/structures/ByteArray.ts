@@ -6,7 +6,7 @@ import { deflateRawSync, inflateRawSync } from "zlib";
 import type { InputType, ZlibOptions } from "zlib";
 
 export enum Endian {
-    LITTLE_ENDIAN = "BE",
+    LITTLE_ENDIAN = "LE",
     BIG_ENDIAN = "BE",
 }
 
