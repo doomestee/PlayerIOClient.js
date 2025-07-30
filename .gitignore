@@ -3,9 +3,12 @@
 node_modules/
 source.js
 test/
+browser
 
 # notice this line here, why tf does this not work
 .gitignore
 bun.lockb
 dist/
 oldlib/
+esm
+cm

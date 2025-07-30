@@ -11,8 +11,8 @@
     "test": "node ./test/index.js",
     "build": "rimraf esm cm && tsc -p tsconfig-cm.json & tsc -p tsconfig-esm.json",
     "browsify": "rimraf browser && npm-run-all -p browsify-*",
-    "browsify-prod": "NODE_ENV=production webpack --mode=production",
-    "browsify-dev": "NODE_ENV=development webpack --mode=development",
+    "browsify-prod": "cross-env NODE_ENV=production webpack --mode=production",
+    "browsify-dev": "cross-env NODE_ENV=development webpack --mode=development",
     "prepare": "run-s build browsify"
   },
   "exports": {
@@ -38,6 +38,7 @@
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
+    "cross-env": "~7.0.3",
     "dotenv": "^16.3.1",
     "npm-run-all": "^4.1.5",
     "process": "^0.11.10",
