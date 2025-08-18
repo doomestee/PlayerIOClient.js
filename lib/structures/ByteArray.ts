@@ -1,7 +1,10 @@
 // Taken from a github repo of ByteArray-Node, and converted to typescript, and made more compact.
 // Improved, using Piratux's modification.
 
-import { decode, encode, encodingExists } from "iconv-lite";
+// See: https://github.com/doomestee/PlayerIOClient.js/issues/1
+import iconv from 'iconv-lite'; // Default import
+const { decode, encode, encodingExists } = iconv;
+
 import { deflateRawSync, inflateRawSync } from "zlib";
 import type { InputType, ZlibOptions } from "zlib";
 
